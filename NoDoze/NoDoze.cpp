@@ -4,6 +4,9 @@
 #include "framework.h"
 #include "NoDoze.h"
 
+#define IDT_SYNTHETIC_ACTIVITY_TIMER 1001
+#define SYNTHETIC_ACTIVITY_TIMER_INTERVAL_MS 1000
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -108,6 +111,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
+   SetTimer(
+       hWnd,                                  // handle to main window 
+       IDT_SYNTHETIC_ACTIVITY_TIMER,          // timer identifier 
+       SYNTHETIC_ACTIVITY_TIMER_INTERVAL_MS,  // 1-second interval 
+       (TIMERPROC)NULL                        // no timer callback 
+   );
+
    return TRUE;
 }
 
@@ -125,6 +135,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_TIMER:
+        switch (wParam) {
+            case IDT_SYNTHETIC_ACTIVITY_TIMER:
+                // process the 1-second timer 
+                SetThreadExecutionState(ES_DISPLAY_REQUIRED);
+                break;
+        }
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -151,6 +169,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_DESTROY:
+        KillTimer(hWnd, IDT_SYNTHETIC_ACTIVITY_TIMER);
         PostQuitMessage(0);
         break;
     default:
